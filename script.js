@@ -1,45 +1,43 @@
 // Function to create a promise that resolves after a random time between 1 and 3 seconds
-function createPromise(id) {
-    return new Promise(resolve => {
-        const time = (Math.random() * 2 + 1).toFixed(3); // Random time between 1 and 3 seconds
-        setTimeout(() => resolve({ id, time }), time * 1000);
+function createPromise(index) {
+    return new Promise((resolve) => {
+        const timeToResolve = Math.random() * (3 - 1) + 1; // Random time between 1 and 3 seconds
+        setTimeout(() => {
+            resolve({ promise: `Promise ${index}`, time: timeToResolve.toFixed(3) });
+        }, timeToResolve * 1000); // Convert to milliseconds
     });
 }
 
-// Create 3 promises
+// Generate three promises
 const promises = [createPromise(1), createPromise(2), createPromise(3)];
 
-// Insert a row with "Loading..." spanning two columns in the table
-const table = document.getElementById('promise-table');
-const loadingRow = document.createElement('tr');
-const loadingCell = document.createElement('td');
-loadingCell.colSpan = 2;
-loadingCell.textContent = 'Loading...';
-loadingRow.appendChild(loadingCell);
-table.appendChild(loadingRow);
+// Update table with results after all promises resolve
+Promise.all(promises).then((results) => {
+    const table = document.getElementById('promise-table');
+    const loadingRow = document.getElementById('loading');
 
-// Handle all promises with Promise.all
-Promise.all(promises).then(results => {
-    // Remove the loading row
-    loadingRow.remove();
+    // Remove the "Loading..." row
+    if (loadingRow) {
+        loadingRow.remove();
+    }
 
+    // Calculate total time
     let totalTime = 0;
 
-    // Populate the table with each promise's result
+    // Append each promise result to the table
     results.forEach(result => {
+        totalTime += parseFloat(result.time);
+
         const row = document.createElement('tr');
         const promiseCell = document.createElement('td');
         const timeCell = document.createElement('td');
 
-        promiseCell.textContent = `Promise ${result.id}`;
+        promiseCell.textContent = result.promise;
         timeCell.textContent = result.time;
 
         row.appendChild(promiseCell);
         row.appendChild(timeCell);
         table.appendChild(row);
-
-        // Accumulate total time
-        totalTime += parseFloat(result.time);
     });
 
     // Add the total time row
@@ -48,10 +46,9 @@ Promise.all(promises).then(results => {
     const totalTimeCell = document.createElement('td');
 
     totalLabelCell.textContent = 'Total';
-    totalTimeCell.textContent = totalTime.toFixed(3); // Display total time to 3 decimal places
+    totalTimeCell.textContent = totalTime.toFixed(3); // Total time rounded to 3 decimal places
 
     totalRow.appendChild(totalLabelCell);
     totalRow.appendChild(totalTimeCell);
     table.appendChild(totalRow);
 });
-
